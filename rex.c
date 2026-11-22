@@ -22,7 +22,7 @@ int enable_raw_mode() {
     struct termios raw = original_termios;
 
     raw.c_lflag = raw.c_lflag & ~(ICANON | ECHO | ISIG | IEXTEN);  // local flags
-    raw.c_iflag = raw.c_iflag & ~(IXON); // input flags
+    raw.c_iflag = raw.c_iflag & ~(IXON | ICRNL); // input flags
     //raw.c_oflag = raw.c_oflag & ~(); // output flags
     //raw.c_cflag = raw.c_cflag & ~ // control flags
 
