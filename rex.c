@@ -2,6 +2,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 
 struct termios original_termios;
@@ -20,10 +21,10 @@ int enable_raw_mode() {
 
     struct termios raw = original_termios;
 
-    raw.c_lflag = raw.c_lflag & ~(ICANON | ECHO);  // local flags
-    raw.c_iflag = raw.c_iflag & ~ // input flags
-    raw.c_oflag = raw.c_oflag & ~ // output flags
-    raw.c_cflag = raw.c_cflag & ~ // control flags
+    raw.c_lflag = raw.c_lflag & ~(ICANON | ECHO | ISIG);  // local flags
+    raw.c_iflag = raw.c_iflag & ~(IXON); // input flags
+    //raw.c_oflag = raw.c_oflag & ~(); // output flags
+    //raw.c_cflag = raw.c_cflag & ~ // control flags
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 
@@ -38,7 +39,13 @@ int main() {
     }
 
     char c;
-    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q');
+    while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
+        if (iscntrl(c)) {
+            printf("%d\n", c);
+        } else {
+            printf("%d ('%c')\n", c, c);
+        }
+    }
 
     return 0;
 }
