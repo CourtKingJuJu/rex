@@ -23,7 +23,7 @@ int enable_raw_mode() {
 
     raw.c_lflag = raw.c_lflag & ~(ICANON | ECHO | ISIG | IEXTEN);  // local flags
     raw.c_iflag = raw.c_iflag & ~(IXON | ICRNL); // input flags
-    //raw.c_oflag = raw.c_oflag & ~(); // output flags
+    raw.c_oflag = raw.c_oflag & ~(OPOST); // output flags
     //raw.c_cflag = raw.c_cflag & ~ // control flags
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
@@ -41,9 +41,9 @@ int main() {
     char c;
     while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q') {
         if (iscntrl(c)) {
-            printf("%d\n", c);
+            printf("%d\r\n", c);
         } else {
-            printf("%d ('%c')\n", c, c);
+            printf("%d ('%c')\r\n", c, c);
         }
     }
 
