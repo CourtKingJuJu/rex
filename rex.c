@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#define CTRL_KEY(k) ((k) & 0x1f)
 
 struct termios original_termios;
 
@@ -33,7 +34,7 @@ void enable_raw_mode() {
     raw.c_oflag = raw.c_oflag & ~(OPOST); // output flags
     raw.c_cflag = raw.c_cflag | ~(CS8); // control flags
     raw.c_cc[VMIN] = 0;
-    raw.c_cc[VTIME] = 50;
+    raw.c_cc[VTIME] = 100;
 
     if ( tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) clean_up("Error setting termios struct");
 }
@@ -50,7 +51,7 @@ int main() {
         } else {
             printf("%d ('%c')\r\n", c, c);
         }
-        if (c == 'q') {
+        if (c == CTRL_KEY('l')) {
             break;
         }
     }
