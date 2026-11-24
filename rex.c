@@ -11,7 +11,8 @@
 
 struct rexConfig {
     struct termios original_termios;
-    struct winsize window_size;
+    int screen_rows;
+    int screen_cols;
 };
 
 struct rexConfig R;
@@ -24,6 +25,8 @@ char rexReadKey();
 void rexDrawRows();
 void rexRefreshScreen();
 void rexProcessKeyPress();
+void initRex();
+
 
 // Error Exit Logic.
 void clean_up(const char *s){
@@ -65,9 +68,22 @@ char rexReadKey() {
     return c;
 }
 
+int getWinSize(int *cols, int *rows) {
+    struct winsize ws;
+
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 && errno != EAGAIN) {
+        return -1;
+    } else {
+        *cols = ws.ws_col;
+        *rows = ws.ws_row;
+        return 0;
+    }
+     
+}
+
 void rexDrawRows(){
     int y;
-    for (y = 0; y < 24; y++) {
+    for (y = 0; y < R.screen_rows; y++) {
         write(STDOUT_FILENO, "~\r\n", 3);
     }
 }
@@ -92,8 +108,13 @@ void rexProcessKeyPress() {
     }
 }
 
+void initRex() {
+    if (getWinSize(&R.screen_cols, &R.screen_rows) == -1) clean_up(("getWinSize Error"));   
+}
+
 int main() {
     enable_raw_mode();
+    initRex();
 
     while (1) { 
         rexRefreshScreen();
