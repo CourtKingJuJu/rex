@@ -16,3 +16,4 @@ To have the terminal taken over like when you do vim my_file. you need to build 
 - BRKINT, INPCK, and ISTRIP these don't really have a visual effect but back in the day were considered needed to do to set a terminal to raw mode so they get included.
 - CS8 is a bit mask this sets the character size for bits to 8 bits per byte.
 - We require errno because this value gets in Portable operating system interfaces POSIX when a function returns with -1 it sets to a positive value. In our case we are letting the text editor timeout and return -1 but it sets the errno to EAGAIN so we need to treat this as a normal input.
+- Control key macro using define. This way we can pass hard coded characters and check vs the byte we read. This helps us avoid writing Hex directly and adds a level of abstraction to the code.

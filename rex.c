@@ -9,6 +9,7 @@
 
 struct termios original_termios;
 
+void clean_up(const char *s);
 void disable_raw_mode();
 void enable_raw_mode();
 
@@ -39,21 +40,31 @@ void enable_raw_mode() {
     if ( tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) clean_up("Error setting termios struct");
 }
 
+char rexReadKey() {
+    int nread;
+    char c;
+    while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+        if (nread == -1 && errno != EAGAIN) clean_up("read error");
+    }
+    return c;
+}
+
+void rexProcessKeyPress() {
+    char c = rexReadKey();
+
+    switch (c) {
+        case CTRL_KEY('l'):
+            exit(0);
+            break;
+    }
+}
+
 int main() {
 
     enable_raw_mode();
 
     while (1) {
-        char c = '\0';
-        if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) clean_up("read error");
-        if (iscntrl(c)) {
-            printf("%d\r\n", c);
-        } else {
-            printf("%d ('%c')\r\n", c, c);
-        }
-        if (c == CTRL_KEY('l')) {
-            break;
-        }
+        rexProcessKeyPress();
     }
 
     return 0;
