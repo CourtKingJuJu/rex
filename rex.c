@@ -12,6 +12,8 @@ struct termios original_termios;
 void clean_up(const char *s);
 void disable_raw_mode();
 void enable_raw_mode();
+char rexReadKey();
+void rexProcessKeyPress();
 
 void clean_up(const char *s){
     perror(s);
@@ -49,9 +51,13 @@ char rexReadKey() {
     return c;
 }
 
+void rexRefreshScreen() {
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
 void rexProcessKeyPress() {
     char c = rexReadKey();
-
     switch (c) {
         case CTRL_KEY('l'):
             exit(0);
@@ -60,10 +66,10 @@ void rexProcessKeyPress() {
 }
 
 int main() {
-
     enable_raw_mode();
 
     while (1) {
+        rexRefreshScreen();
         rexProcessKeyPress();
     }
 
