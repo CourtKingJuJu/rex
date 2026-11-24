@@ -1,18 +1,28 @@
 #include <stdio.h>
+#include <sys/ttycom.h>
 #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <ctype.h>
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
-struct termios original_termios;
+struct rexConfig {
+    struct termios original_termios;
+    struct winsize window_size;
+};
+
+struct rexConfig R;
+
 
 void clean_up(const char *s);
 void disable_raw_mode();
 void enable_raw_mode();
 char rexReadKey();
+void rexDrawRows();
+void rexRefreshScreen();
 void rexProcessKeyPress();
 
 // Error Exit Logic.
@@ -25,16 +35,16 @@ void clean_up(const char *s){
 }
 
 void disable_raw_mode() {
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios) == -1) clean_up("Error setting terminal back to normal");
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &R.original_termios) == -1) clean_up("Error setting terminal back to normal");
 }
 
 void enable_raw_mode() {
 
-    if (tcgetattr(STDIN_FILENO, &original_termios) == -1) clean_up("Error getting termios struct");
+    if (tcgetattr(STDIN_FILENO, &R.original_termios) == -1) clean_up("Error getting termios struct");
     
     atexit(disable_raw_mode);
 
-    struct termios raw = original_termios;
+    struct termios raw = R.original_termios;
 
     raw.c_lflag = raw.c_lflag & ~(ICANON | ECHO | ISIG | IEXTEN);  // local flags
     raw.c_iflag = raw.c_iflag & ~(IXON | ICRNL | BRKINT | INPCK | ISTRIP); // input flags
@@ -55,10 +65,21 @@ char rexReadKey() {
     return c;
 }
 
+void rexDrawRows(){
+    int y;
+    for (y = 0; y < 24; y++) {
+        write(STDOUT_FILENO, "~\r\n", 3);
+    }
+}
+
 void rexRefreshScreen() {
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
+
+    rexDrawRows();
+    write(STDOUT_FILENO, "\x1b[H", 3);
 }
+
 
 void rexProcessKeyPress() {
     char c = rexReadKey();
@@ -74,7 +95,7 @@ void rexProcessKeyPress() {
 int main() {
     enable_raw_mode();
 
-    while (1) {
+    while (1) { 
         rexRefreshScreen();
         rexProcessKeyPress();
     }
