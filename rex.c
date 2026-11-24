@@ -15,10 +15,11 @@ void enable_raw_mode();
 char rexReadKey();
 void rexProcessKeyPress();
 
+// Error Exit Logic.
 void clean_up(const char *s){
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
-    
+
     perror(s);
     exit(1);
 }
@@ -63,6 +64,8 @@ void rexProcessKeyPress() {
     char c = rexReadKey();
     switch (c) {
         case CTRL_KEY('l'):
+            write(STDOUT_FILENO, "\x1b[2J", 4);
+            write(STDOUT_FILENO, "\x1b[H", 3);
             exit(0);
             break;
     }
