@@ -71,8 +71,9 @@ char rexReadKey() {
 int getWinSize(int *cols, int *rows) {
     struct winsize ws;
 
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 && errno != EAGAIN) {
-        return -1;
+    if (1 || ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+        if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
+        rexReadKey();
     } else {
         *cols = ws.ws_col;
         *rows = ws.ws_row;
